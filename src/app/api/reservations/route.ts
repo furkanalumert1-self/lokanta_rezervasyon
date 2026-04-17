@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getIronSession } from "iron-session";
-import { SessionData, sessionOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { generateConfirmationCode } from "@/lib/reservation-utils";
 
 export async function GET(req: NextRequest) {
-  const res = NextResponse.json({});
-  const session = await getIronSession<SessionData>(req, res, sessionOptions);
-  if (!session.isLoggedIn) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
@@ -33,7 +29,6 @@ export async function GET(req: NextRequest) {
     include: { table: true },
     orderBy: { date: "asc" },
   });
-
   return NextResponse.json(reservations);
 }
 
@@ -41,14 +36,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const restaurant = await prisma.restaurant.findFirst();
-    if (!restaurant) {
-      return NextResponse.json({ error: "Restoran bulunamadı" }, { status: 404 });
-    }
+    if (!restaurant) return NextResponse.json({ error: "Restoran bulunamadı" }, { status: 404 });
 
-    const dateStr = body.date;
-    const timeStr = body.time;
-    const [hour, min] = timeStr.split(":").map(Number);
-    const reservationDate = new Date(dateStr);
+    const [hour, min] = body.time.split(":").map(Number);
+    const reservationDate = new Date(body.date);
     reservationDate.setHours(hour, min, 0, 0);
 
     let confirmationCode = generateConfirmationCode();
@@ -73,7 +64,6 @@ export async function POST(req: NextRequest) {
         source: "web",
       },
     });
-
     return NextResponse.json({ reservation, confirmationCode });
   } catch (err) {
     console.error(err);
