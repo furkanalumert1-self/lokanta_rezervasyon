@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { generateTimeSlots, isSlotAvailable } from "@/lib/reservation-utils";
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const date = searchParams.get("date");
+  if (!date) return NextResponse.json({ error: "Tarih gerekli" }, { status: 400 });
+
+  const restaurant = await prisma.restaurant.findFirst({
+    include: { tables: { where: { isActive: true } } },
+  });
+  if (!restaurant) return NextResponse.json({ error: "Restoran bulunamadı" }, { status: 404 });
+
+  const totalCapacity = restaurant.tables.reduce((sum, t) => sum + t.capacity, 0);
+
+  const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
+
+  const reservations = await prisma.reservation.findMany({
+    where: {
+      restaurantId: restaurant.id,
+      date: { gte: dayStart, lte: dayEnd },
+      status: { notIn: ["cancelled"] },
+    },
+    select: { date: true, duration: true, guestCount: true },
+  });
+
+  const allSlots = generateTimeSlots(restaurant.openingTime, restaurant.closingTime, restaurant.slotDuration);
+
+  const now = new Date();
+  const selectedDate = new Date(date);
+  const isToday = selectedDate.toDateString() === now.toDateString();
+
+  const slots = allSlots.map((time) => {
+    const [h, m] = time.split(":").map(Number);
+    if (isToday) {
+      const slotDateTime = new Date(selectedDate);
+      slotDateTime.setHours(h, m, 0, 0);
+      if (slotDateTime <= now) return { time, available: false };
+    }
+    const available = isSlotAvailable(time, date, reservations, totalCapacity, restaurant.slotDuration);
+    return { time, available };
+  });
+
+  return NextResponse.json({ slots });
+}
