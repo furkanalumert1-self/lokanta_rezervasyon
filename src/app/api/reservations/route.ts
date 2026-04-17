@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getIronSession } from "iron-session";
+import { SessionData, sessionOptions } from "@/lib/auth";
 import { generateConfirmationCode } from "@/lib/reservation-utils";
 
 export async function GET(req: NextRequest) {
-  const session = await getSession();
+  const res = NextResponse.json({});
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   if (!session.isLoggedIn) {
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
@@ -43,14 +45,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Restoran bulunamadı" }, { status: 404 });
     }
 
-    // Parse date/time
-    const dateStr = body.date; // YYYY-MM-DD
-    const timeStr = body.time; // HH:MM
+    const dateStr = body.date;
+    const timeStr = body.time;
     const [hour, min] = timeStr.split(":").map(Number);
     const reservationDate = new Date(dateStr);
     reservationDate.setHours(hour, min, 0, 0);
 
-    // Generate unique code
     let confirmationCode = generateConfirmationCode();
     let exists = await prisma.reservation.findUnique({ where: { confirmationCode } });
     while (exists) {
