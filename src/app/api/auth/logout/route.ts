@@ -1,11 +1,7 @@
-// src/app/api/auth/logout/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { getIronSession } from "iron-session";
-import { SessionData, sessionOptions } from "@/lib/auth";
- 
-export async function POST(req: NextRequest) {
-  const res = NextResponse.redirect(new URL("/admin/giris", req.url));
-  const session = await getIronSession<SessionData>(req, res, sessionOptions);
-  session.destroy();
-  return res;
+import { NextResponse } from "next/server";
+import { deleteSession } from "@/lib/auth";
+
+export async function POST() {
+  await deleteSession();
+  return NextResponse.redirect(new URL("/admin/giris", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
 }
