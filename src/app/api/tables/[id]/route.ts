@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getIronSession } from "iron-session";
+import { SessionData, sessionOptions } from "@/lib/auth";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getSession();
+  const res = NextResponse.json({});
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   if (!session.isLoggedIn) {
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
@@ -23,7 +25,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getSession();
+  const res = NextResponse.json({});
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   if (!session.isLoggedIn) {
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
