@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { sessionOptions, SessionData } from "@/lib/auth";
 import { getIronSession } from "iron-session";
 import bcryptjs from "bcryptjs";
-import { cookies } from "next/headers";
  
 export async function POST(req: NextRequest) {
   try {
@@ -24,14 +23,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Geçersiz email veya şifre" }, { status: 401 });
     }
  
-    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+    const res = NextResponse.json({ ok: true });
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
     session.userId = user.id;
     session.email = user.email;
     session.name = user.name;
     session.isLoggedIn = true;
     await session.save();
  
-    return NextResponse.json({ ok: true });
+    return res;
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
