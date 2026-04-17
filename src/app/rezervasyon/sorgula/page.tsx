@@ -7,10 +7,19 @@ import PublicFooter from "@/components/PublicFooter";
 import ReservationStatusBadge from "@/components/ReservationStatusBadge";
 import { formatDate, formatTime } from "@/lib/utils";
 
+type ReservationResult = {
+  customerName: string;
+  customerPhone: string;
+  date: string;
+  guestCount: number;
+  status: string;
+  notes?: string | null;
+};
+
 export default function SorgulaPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [result, setResult] = useState<ReservationResult | null>(null);
   const [error, setError] = useState("");
 
   const handleSearch = async () => {
@@ -78,15 +87,15 @@ export default function SorgulaPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-semibold text-gray-900">Rezervasyon Detayı</h3>
-              <ReservationStatusBadge status={result.status as string} />
+              <ReservationStatusBadge status={result.status} />
             </div>
 
             <div className="space-y-3">
               {[
                 { icon: User, label: "Misafir", value: result.customerName },
                 { icon: Phone, label: "Telefon", value: result.customerPhone },
-                { icon: Calendar, label: "Tarih", value: formatDate(result.date as string) },
-                { icon: Clock, label: "Saat", value: formatTime(result.date as string) },
+                { icon: Calendar, label: "Tarih", value: formatDate(result.date) },
+                { icon: Clock, label: "Saat", value: formatTime(result.date) },
                 { icon: Users, label: "Kişi Sayısı", value: `${result.guestCount} kişi` },
               ].map((row) => (
                 <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
@@ -94,13 +103,13 @@ export default function SorgulaPage() {
                     <row.icon className="w-4 h-4" />
                     {row.label}
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{row.value as string}</span>
+                  <span className="text-sm font-medium text-gray-900">{row.value}</span>
                 </div>
               ))}
               {result.notes && (
                 <div className="pt-1">
                   <p className="text-xs text-gray-400 mb-1">Not</p>
-                  <p className="text-sm text-gray-700">{result.notes as string}</p>
+                  <p className="text-sm text-gray-700">{result.notes}</p>
                 </div>
               )}
             </div>
