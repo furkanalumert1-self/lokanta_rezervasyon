@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sessionOptions, SessionData } from "@/lib/auth";
-import { getIronSession } from "iron-session";
+import { createSession } from "@/lib/auth";
 import bcryptjs from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -23,15 +22,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Geçersiz email veya şifre" }, { status: 401 });
     }
 
-    const res = NextResponse.json({ ok: true });
-    const session = await getIronSession<SessionData>(req, res, sessionOptions);
-    session.userId = user.id;
-    session.email = user.email;
-    session.name = user.name;
-    session.isLoggedIn = true;
-    await session.save();
-
-    return res;
+    await createSession({ userId: user.id, email: user.email, name: user.name });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
