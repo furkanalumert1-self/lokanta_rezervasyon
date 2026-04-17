@@ -1,4 +1,5 @@
-import { SessionOptions } from "iron-session";
+import { SessionOptions, getIronSession } from "iron-session";
+import { NextRequest, NextResponse } from "next/server";
  
 export interface SessionData {
   userId?: string;
@@ -16,3 +17,7 @@ export const sessionOptions: SessionOptions = {
     sameSite: "lax",
   },
 };
+ 
+export async function getSession(req: NextRequest, res: NextResponse) {
+  return getIronSession<SessionData>(req, res, sessionOptions);
+}
