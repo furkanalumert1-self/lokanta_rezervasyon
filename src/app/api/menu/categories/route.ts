@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getIronSession } from "iron-session";
-import { SessionData, sessionOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
   const restaurant = await prisma.restaurant.findFirst();
@@ -22,33 +21,22 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const res = NextResponse.json({});
-  const session = await getIronSession<SessionData>(req, res, sessionOptions);
-  if (!session.isLoggedIn) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
   const restaurant = await prisma.restaurant.findFirst();
   if (!restaurant) return NextResponse.json({ error: "Restoran bulunamadı" }, { status: 404 });
 
   const body = await req.json();
   const category = await prisma.menuCategory.create({
-    data: {
-      restaurantId: restaurant.id,
-      name: body.name,
-      sortOrder: body.sortOrder || 0,
-    },
+    data: { restaurantId: restaurant.id, name: body.name, sortOrder: body.sortOrder || 0 },
   });
-
   return NextResponse.json(category);
 }
 
 export async function DELETE(req: NextRequest) {
-  const res = NextResponse.json({});
-  const session = await getIronSession<SessionData>(req, res, sessionOptions);
-  if (!session.isLoggedIn) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
