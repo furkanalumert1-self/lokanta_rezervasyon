@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getIronSession } from "iron-session";
+import { SessionData, sessionOptions } from "@/lib/auth";
 
 export async function GET() {
   const restaurant = await prisma.restaurant.findFirst();
@@ -21,7 +22,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
+  const res = NextResponse.json({});
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   if (!session.isLoggedIn) {
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
@@ -42,7 +44,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getSession();
+  const res = NextResponse.json({});
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
   if (!session.isLoggedIn) {
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
