@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Filter } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ReservationStatusBadge from "@/components/ReservationStatusBadge";
@@ -39,6 +39,7 @@ export default function RezervasiyonlarPage() {
   const [status, setStatus] = useState("all");
   const [range, setRange] = useState("today");
   const [search, setSearch] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchReservations = useCallback(async () => {
     setLoading(true);
@@ -56,6 +57,24 @@ export default function RezervasiyonlarPage() {
   }, [status, range]);
 
   useEffect(() => { fetchReservations(); }, [fetchReservations]);
+
+  const updateStatus = async (id: string, newStatus: string) => {
+    setActionLoading(id + newStatus);
+    try {
+      const res = await fetch(`/api/reservations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setReservations((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+        );
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const filtered = reservations.filter((r) => {
     if (!search) return true;
@@ -145,12 +164,42 @@ export default function RezervasiyonlarPage() {
                     <td className="px-4 py-3 text-gray-500">{r.table?.name || "—"}</td>
                     <td className="px-4 py-3"><ReservationStatusBadge status={r.status} /></td>
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/rezervasyonlar/${r.id}`}
-                        className="text-xs text-orange-600 hover:underline font-medium"
-                      >
-                        Detay →
-                      </Link>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {r.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => updateStatus(r.id, "confirmed")}
+                              disabled={actionLoading === r.id + "confirmed"}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-50"
+                            >
+                              {actionLoading === r.id + "confirmed" ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="h-3 w-3" />
+                              )}
+                              Onayla
+                            </button>
+                            <button
+                              onClick={() => updateStatus(r.id, "cancelled")}
+                              disabled={actionLoading === r.id + "cancelled"}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50"
+                            >
+                              {actionLoading === r.id + "cancelled" ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <XCircle className="h-3 w-3" />
+                              )}
+                              İptal
+                            </button>
+                          </>
+                        )}
+                        <Link
+                          href={`/admin/rezervasyonlar/${r.id}`}
+                          className="text-xs text-orange-600 hover:underline font-medium"
+                        >
+                          Detay →
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

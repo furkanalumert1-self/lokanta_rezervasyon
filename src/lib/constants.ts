@@ -1,8 +1,8 @@
 export const RESERVATION_STATUS = {
   pending: "Bekliyor",
-  confirmed: "Onaylandi",
-  cancelled: "Iptal",
-  completed: "Tamamlandi",
+  confirmed: "Onaylandı",
+  cancelled: "İptal",
+  completed: "Tamamlandı",
   no_show: "Gelmedi",
 } as const;
 

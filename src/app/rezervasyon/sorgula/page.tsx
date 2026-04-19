@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Search, Calendar, Clock, Users, Phone, FileText } from "lucide-react";
+import { Search, Calendar, Clock, Users, Phone, FileText, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import PublicHeader from "@/components/PublicHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,35 @@ export default function SorgulaPage() {
         )}
 
         {result && (
+          <div className="space-y-4">
+            {result.status === "confirmed" && (
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold text-green-800">Rezervasyonunuz Onaylandı!</p>
+                  <p className="text-sm text-green-700 mt-0.5">Rezervasyonunuz restoran tarafından onaylandı. Sizi bekliyoruz!</p>
+                </div>
+              </div>
+            )}
+            {result.status === "cancelled" && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3">
+                <XCircle className="h-6 w-6 text-red-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold text-red-800">Rezervasyon İptal Edildi</p>
+                  <p className="text-sm text-red-700 mt-0.5">Bu rezervasyon iptal edilmiştir. Yeni rezervasyon oluşturmak için lütfen bizimle iletişime geçin.</p>
+                </div>
+              </div>
+            )}
+            {result.status === "pending" && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 flex items-start gap-3">
+                <HelpCircle className="h-6 w-6 text-yellow-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold text-yellow-800">Onay Bekleniyor</p>
+                  <p className="text-sm text-yellow-700 mt-0.5">Rezervasyonunuz alındı, restoran tarafından onaylanması bekleniyor.</p>
+                </div>
+              </div>
+            )}
+
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">{result.customerName}</h2>
@@ -130,6 +159,7 @@ export default function SorgulaPage() {
                 Onay kodu: <span className="font-mono font-semibold text-gray-600">{result.confirmationCode}</span>
               </p>
             </div>
+          </div>
           </div>
         )}
       </div>
