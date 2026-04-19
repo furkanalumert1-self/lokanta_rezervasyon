@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { CalendarDays, Clock, Users, CheckCircle2, MessageCircle, ChevronRight } from "lucide-react";
